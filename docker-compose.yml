@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  tech-blog:
+    build: .
+    container_name: tech-blog
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3010:3000"  # bind to localhost only; Nginx reverse-proxies this
+    env_file:
+      - .env.local
+    volumes:
+      - ./uploads:/app/public/uploads   # persist uploaded files outside the container
