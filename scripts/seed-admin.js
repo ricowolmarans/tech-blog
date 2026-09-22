@@ -1,12 +1,23 @@
 const { createClient } = require("@libsql/client");
 const bcrypt = require("bcryptjs");
 const { nanoid } = require("nanoid");
-require("dotenv").config({ path: ".env.local" });
+const path = require("path");
 
-const db = createClient({
-  url: process.env.TURSO_DATABASE_URL,
-  authToken: process.env.TURSO_AUTH_TOKEN,
+require("dotenv").config({
+  path: path.join(__dirname, "..", ".env.local"),
 });
+
+const url = process.env.TURSO_DATABASE_URL;
+const authToken = process.env.TURSO_AUTH_TOKEN;
+
+if (!url || !authToken) {
+  console.error(
+    "Missing TURSO_DATABASE_URL or TURSO_AUTH_TOKEN. Copy .env.example to .env.local and fill them in."
+  );
+  process.exit(1);
+}
+
+const db = createClient({ url, authToken });
 
 async function seed() {
   const email = process.argv[2];
