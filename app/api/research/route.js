@@ -48,11 +48,11 @@ export async function POST(req) {
       {
         role: "system",
         content:
-          "You are a research assistant for a technical writer. Summarize the given search results into concise, factual reference notes the writer can use themselves — do not write the article itself, just organize the facts, numbers, and sources clearly.",
+          "You are a research assistant for a technical writer. Summarize the given search results into a short, scannable research brief the writer can reference themselves — do not write the article itself. Format rules: use plain markdown only — short bullet points (- ) for facts, no tables, no HTML tags like <br>, no nested formatting. Keep each bullet to one sentence. Group bullets under short bold headers only if there are clearly distinct sub-topics; otherwise just one flat bullet list. End with a 'Sources' bullet list of the source titles.",
       },
       {
         role: "user",
-        content: `Topic: ${topic}\n\nSearch results:\n${context}\n\nProduce a structured research brief with key facts and cited sources.`,
+        content: `Topic: ${topic}\n\nSearch results:\n${context}\n\nWrite the research brief as plain markdown bullet points only, no tables, no <br> tags.`,
       },
     ],
     temperature: 0.3,
