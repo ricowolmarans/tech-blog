@@ -1,11 +1,13 @@
 "use client";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function ResearchSidebar({ postId }) {
   const [topic, setTopic] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [error, setError] = useState("");
+  const [collapsed, setCollapsed] = useState(false);
 
   async function runResearch(e) {
     e.preventDefault();
@@ -29,11 +31,33 @@ export default function ResearchSidebar({ postId }) {
     }
   }
 
+  if (collapsed) {
+    return (
+      <div className="flex items-center justify-between border-t border-neutral-800 bg-neutral-900 px-4 py-2 lg:h-full lg:w-10 lg:flex-col lg:justify-start lg:border-l lg:border-t-0 lg:py-4">
+        <button
+          onClick={() => setCollapsed(false)}
+          className="text-xs font-semibold uppercase tracking-wide text-neutral-400 hover:text-neutral-100 lg:[writing-mode:vertical-rl]"
+        >
+          Research {results.length > 0 ? `(${results.length})` : ""}
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <aside className="flex h-full w-80 flex-col border-l border-neutral-800 bg-neutral-900 p-4">
-      <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-neutral-400">
-        Research
-      </h2>
+    <aside className="flex h-72 w-full flex-col border-t border-neutral-800 bg-neutral-900 p-4 lg:h-full lg:w-80 lg:border-l lg:border-t-0">
+      <div className="mb-3 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-400">
+          Research
+        </h2>
+        <button
+          onClick={() => setCollapsed(true)}
+          className="text-xs text-neutral-500 hover:text-neutral-200"
+          title="Collapse"
+        >
+          ✕
+        </button>
+      </div>
       <form onSubmit={runResearch} className="mb-4 flex gap-2">
         <input
           value={topic}
@@ -59,14 +83,23 @@ export default function ResearchSidebar({ postId }) {
             className="rounded border border-neutral-800 bg-neutral-950 p-3 text-sm text-neutral-200"
           >
             <p className="mb-1 font-medium text-neutral-100">{r.topic}</p>
-            <p className="whitespace-pre-wrap text-xs text-neutral-300">
-              {r.summary}
-            </p>
-            {r.sources?.length > 0 && (
+            <div className="text-xs text-neutral-300">
+              <ReactMarkdown
+                components={{
+                  ul: (props) => <ul className="ml-4 list-disc space-y-1" {...props} />,
+                  li: (props) => <li className="text-xs text-neutral-300" {...props} />,
+                  p: (props) => <p className="mb-1 text-xs text-neutral-300" {...props} />,
+                  strong: (props) => <strong className="text-neutral-100" {...props} />,
+                }}
+              >
+                {r.summary}
+              </ReactMarkdown>
+            </div>
+            {r.sources && r.sources.length > 0 && (
               <ul className="mt-2 space-y-1 border-t border-neutral-800 pt-2">
                 {r.sources.map((s, i) => (
                   <li key={i}>
-                    <a
+                    
                       href={s.url}
                       target="_blank"
                       rel="noreferrer"
