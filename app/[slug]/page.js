@@ -1,6 +1,9 @@
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+
+export const dynamic = "force-dynamic";
 
 async function getPost(slug) {
   const result = await db.execute({
@@ -29,7 +32,13 @@ export default async function BlogPostPage({ params }) {
   const tokens = theme
     ? JSON.parse(theme.tokens)
     : {
-        colors: { background: "#0a0a0a", text: "#f5f5f5", accent: "#3b82f6", muted: "#737373" },
+        colors: {
+          background: "#0a0a0a",
+          text: "#f5f5f5",
+          accent: "#2563eb",
+          accent2: "#dc2626",
+          muted: "#a3a3a3",
+        },
         fonts: { body: "system-ui, sans-serif", heading: "system-ui, sans-serif" },
       };
 
@@ -40,16 +49,11 @@ export default async function BlogPostPage({ params }) {
       <MarkdownRenderer content={post.content} />
     );
 
-  // Full custom HTML wrapper mode: theme owns the entire page shell
-  if (theme?.custom_html_wrapper) {
+  if (theme?.custom_html_wrapper && post.content_format === "html") {
     const html = theme.custom_html_wrapper
       .replace(/{{\s*title\s*}}/g, post.title)
-      .replace(/{{\s*content\s*}}/g, post.content_format === "html" ? post.content : "");
-    // If wrapper is used with markdown content, still render markdown normally below the raw wrapper isn't practical —
-    // wrapper mode is intended for HTML-format posts. For markdown posts, fall through to standard rendering.
-    if (post.content_format === "html") {
-      return <div dangerouslySetInnerHTML={{ __html: html }} />;
-    }
+      .replace(/{{\s*content\s*}}/g, post.content);
+    return <div dangerouslySetInnerHTML={{ __html: html }} />;
   }
 
   return (
@@ -62,26 +66,52 @@ export default async function BlogPostPage({ params }) {
       }}
     >
       {theme?.custom_css && <style dangerouslySetInnerHTML={{ __html: theme.custom_css }} />}
-      <div className="mx-auto max-w-2xl px-6 py-16">
+
+      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-8 sm:py-12">
+        <Link
+          href="/"
+          style={{ color: tokens.colors?.accent }}
+          className="mb-6 inline-block text-sm hover:underline sm:mb-8"
+        >
+          ← Back
+        </Link>
+
         {post.status === "private" && (
-          <p style={{ color: tokens.colors?.accent }} className="mb-4 text-xs uppercase tracking-wide">
+          <p
+            style={{ color: tokens.colors?.accent2 || tokens.colors?.accent }}
+            className="mb-3 text-xs font-medium uppercase tracking-wide"
+          >
             Private post
           </p>
         )}
-        <h1 style={{ fontFamily: tokens.fonts?.heading }} className="mb-2 text-3xl font-bold">
+
+        <h1
+          style={{ fontFamily: tokens.fonts?.heading }}
+          className="text-2xl font-bold leading-tight sm:text-4xl"
+        >
           {post.title}
         </h1>
-        <p style={{ color: tokens.colors?.muted }} className="mb-8 text-sm">
-          {post.published_at ? new Date(post.published_at).toLocaleDateString() : "Draft"}
+        <p style={{ color: tokens.colors?.muted }} className="mb-6 mt-2 text-sm sm:mb-8">
+          {post.published_at
+            ? new Date(post.published_at).toLocaleDateString(undefined, {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })
+            : "Draft"}
         </p>
+
         {post.cover_filename && (
           <img
             src={`/uploads/${post.cover_filename}`}
             alt=""
-            className="mb-8 w-full rounded"
+            className="mb-6 w-full rounded-lg sm:mb-8"
           />
         )}
-        {bodyMarkup}
+
+        <article className="prose prose-invert max-w-none text-[15px] leading-relaxed sm:text-base">
+          {bodyMarkup}
+        </article>
       </div>
     </div>
   );
